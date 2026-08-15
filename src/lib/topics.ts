@@ -66,3 +66,39 @@ export function readUserData(): UserData | null {
     return null;
   }
 }
+
+const PENDING_ORDER_KEY = "runic_pending_order";
+
+export interface PendingOrder {
+  plan: string;
+  /** Needed by /api/generate-pdf to prove the download follows a real payment. */
+  paymentId: string | null;
+}
+
+/** Survives the round trip through YooKassa's hosted payment page. */
+export function savePendingOrder(order: PendingOrder): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PENDING_ORDER_KEY, JSON.stringify(order));
+  } catch {
+    // The reading is emailed regardless of what this browser remembers.
+  }
+}
+
+export function readPendingOrder(): PendingOrder | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PENDING_ORDER_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<PendingOrder>;
+    if (typeof parsed?.plan !== "string") return null;
+
+    return {
+      plan: parsed.plan,
+      paymentId: typeof parsed.paymentId === "string" ? parsed.paymentId : null,
+    };
+  } catch {
+    return null;
+  }
+}

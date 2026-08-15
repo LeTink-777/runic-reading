@@ -33,6 +33,46 @@ function credentials(): { shopId: string; secretKey: string } {
   return { shopId, secretKey };
 }
 
+export interface FetchedPayment {
+  id: string;
+  status: string;
+  metadata: Record<string, string>;
+}
+
+/**
+ * Reads a payment by id.
+ *
+ * Used to prove a download request belongs to a payment that actually
+ * succeeded, and to read the reading's details back from the payment itself
+ * rather than trusting what the browser posts.
+ */
+export async function getPayment(paymentId: string): Promise<FetchedPayment | null> {
+  const { shopId, secretKey } = credentials();
+  const auth = Buffer.from(`${shopId}:${secretKey}`).toString("base64");
+
+  const response = await fetch(`${API_URL}/${encodeURIComponent(paymentId)}`, {
+    method: "GET",
+    headers: { Authorization: `Basic ${auth}` },
+    cache: "no-store",
+  });
+
+  if (!response.ok) return null;
+
+  const payload = (await response.json()) as {
+    id?: string;
+    status?: string;
+    metadata?: Record<string, string>;
+  };
+
+  if (!payload.id || !payload.status) return null;
+
+  return {
+    id: payload.id,
+    status: payload.status,
+    metadata: payload.metadata ?? {},
+  };
+}
+
 /**
  * Creates a redirect payment.
  *

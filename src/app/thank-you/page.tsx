@@ -1,15 +1,17 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle, Zap, ArrowRight } from "lucide-react";
+import { CheckCircle, Download, Zap, ArrowRight } from "lucide-react";
 import RuneStone from "@/components/RuneStone";
 import RuneEmbers from "@/components/RuneEmbers";
 import { useUserData } from "@/lib/useUserData";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { drawRunes } from "@/lib/runes";
+import { readPendingOrder } from "@/lib/topics";
+import { generateResultSections } from "@/lib/result-sections";
 
 const FALLBACK_RUNES = ["fehu", "sowilo", "dagaz"];
 
@@ -25,12 +27,70 @@ function ThankYouContent() {
     return [reading.rune1.id, reading.rune2.id, reading.rune3.id];
   }, [user]);
 
-  const planParam = params.get("plan");
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [storedPlan, setStoredPlan] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
+
+  useEffect(() => {
+    const order = readPendingOrder();
+    if (order) {
+      setPaymentId(order.paymentId);
+      setStoredPlan(order.plan);
+    }
+  }, []);
+
+  const planParam = params.get("plan") ?? storedPlan;
   const plan: PlanId =
     planParam === "basic" || planParam === "premium" || planParam === "full"
       ? planParam
       : "full";
   const hours = PLANS[plan].delivery;
+
+  // Тот же построитель, что использует PDF в письме — страница и вложение
+  // всегда показывают один и тот же расклад.
+  const sections = useMemo(
+    () =>
+      user ? generateResultSections({ name: user.name, topic: user.topic }, plan) : [],
+    [user, plan],
+  );
+
+  async function handleDownloadPDF() {
+    if (!paymentId) {
+      setDownloadError(
+        "Не нашли номер платежа в этом браузере. Расклад отправлен тебе на почту.",
+      );
+      return;
+    }
+
+    setDownloading(true);
+    setDownloadError("");
+
+    try {
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId }),
+      });
+
+      if (!response.ok) throw new Error(`PDF request failed with ${response.status}`);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "runy.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Немедленный revoke в некоторых браузерах отменяет загрузку.
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch {
+      setDownloadError("Не удалось скачать PDF. Он также отправлен тебе на почту.");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 py-16">
@@ -68,14 +128,60 @@ function ThankYouContent() {
         </motion.div>
 
         <h1 className="mt-6" style={{ fontSize: "clamp(24px, 4.4vw, 28px)" }}>
-          {name ? `${name}, руны услышали тебя` : "Руны услышали тебя"}
+          Оплата прошла успешно!
         </h1>
 
         <p className="mx-auto mt-4 max-w-[44ch]" style={{ color: "var(--text-secondary)" }}>
-          Расклад уже готовится и придёт на{" "}
-          <span style={{ color: "var(--accent-ice)" }}>{email || "твой email"}</span> через{" "}
-          {hours} часов
+          {name ? `${name}, твой` : "Твой"} расклад открыт ниже. Копия отправлена на{" "}
+          <span style={{ color: "var(--accent-ice)" }}>{email || "твой email"}</span>
         </p>
+
+        <div className="mt-8">
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="btn-amber inline-flex items-center justify-center gap-2.5"
+          >
+            <Download size={18} strokeWidth={2} />
+            {downloading ? "Готовим PDF…" : "Скачать PDF"}
+          </button>
+          {downloadError ? (
+            <p className="mt-3" style={{ fontSize: 13.5, color: "var(--text-secondary)" }}>
+              {downloadError}
+            </p>
+          ) : null}
+        </div>
+
+        {sections.length > 0 ? (
+          <section className="mt-12 text-left">
+            {sections.map((section) => (
+              <article
+                key={section.title}
+                className="mb-4 rounded-sm p-6"
+                style={{
+                  border: "1px solid rgba(232,130,12,0.28)",
+                  background: "rgba(232,130,12,0.04)",
+                }}
+              >
+                <h2 style={{ fontSize: 17, color: "var(--accent-amber)" }}>
+                  {section.title}
+                </h2>
+                <p
+                  className="mt-2.5"
+                  style={{
+                    color: "var(--text-secondary)",
+                    fontSize: 14.5,
+                    lineHeight: 1.65,
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {section.content}
+                </p>
+              </article>
+            ))}
+          </section>
+        ) : null}
 
         {/* Upsell */}
         <div

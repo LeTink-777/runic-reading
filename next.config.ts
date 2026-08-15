@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The PDF renderer loads these fonts from disk at request time. Nothing
+  // imports them, so file tracing cannot infer the dependency and the routes
+  // would deploy without them — every Cyrillic glyph then renders as garbage.
+  outputFileTracingIncludes: {
+    "/api/webhook": ["./public/fonts/**"],
+    "/api/generate-pdf": ["./public/fonts/**"],
+  },
+
   async redirects() {
     return [
       /* www is canonical. Both hosts are attached to the Vercel project, so the

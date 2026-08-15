@@ -7,7 +7,7 @@ import RuneGlyph from "./RuneGlyph";
 import { PLANS, formatPrice, type PlanId } from "@/lib/plans";
 import { useCountdown, useSpots } from "@/lib/useFunnelState";
 import type { UserData } from "@/lib/topics";
-import { topicById } from "@/lib/topics";
+import { savePendingOrder, topicById } from "@/lib/topics";
 
 interface StoneSlot {
   key: string;
@@ -55,11 +55,14 @@ export default function StonePricing({ user }: { user: UserData }) {
       });
       const data = (await response.json()) as {
         confirmationUrl?: string;
+        paymentId?: string;
         error?: string;
       };
       if (!response.ok || !data.confirmationUrl) {
         throw new Error(data.error ?? "Не удалось создать платёж");
       }
+      // Needed by /thank-you to prove the PDF download follows a real payment.
+      savePendingOrder({ plan, paymentId: data.paymentId ?? null });
       window.location.href = data.confirmationUrl;
     } catch (e) {
       setError(
