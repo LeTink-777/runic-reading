@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createPayment } from "@/lib/yukassa";
 import { PLANS, type PlanId } from "@/lib/plans";
+import { resolveReturnOrigin } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,17 +17,6 @@ interface CheckoutBody {
 
 function isPlanId(value: unknown): value is PlanId {
   return value === "basic" || value === "full" || value === "premium";
-}
-
-function originFrom(request: Request): string {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (envUrl) return envUrl.replace(/\/$/, "");
-
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
-  if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
-
-  return new URL(request.url).origin;
 }
 
 export async function POST(request: Request) {
@@ -54,7 +44,7 @@ export async function POST(request: Request) {
     const payment = await createPayment({
       amount: plan.price,
       description: plan.description,
-      returnUrl: `${originFrom(request)}/thank-you?plan=${plan.id}`,
+      returnUrl: `${resolveReturnOrigin(request)}/thank-you?plan=${plan.id}`,
       metadata: { plan: plan.id, name, email, topic },
     });
 

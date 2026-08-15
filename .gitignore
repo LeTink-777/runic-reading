@@ -43,3 +43,6 @@ next-env.d.ts
 
 # python virtualenv (pre-existing in this directory)
 .venv/
+
+# editors
+.idea/

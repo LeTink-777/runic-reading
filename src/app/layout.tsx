@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cinzel, Crimson_Text, Space_Mono, Forum, PT_Serif } from "next/font/google";
 import { FAQ } from "@/lib/faq";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 /* adjustFontFallback is off for the two Latin-only faces on purpose. next/font
@@ -51,8 +52,6 @@ const ptSerif = PT_Serif({
   style: ["normal", "italic"],
   display: "swap",
 });
-
-const SITE_URL = "https://runic-reading.vercel.app";
 
 const TITLE = "Рунический расклад онлайн — Три руны на ближайший месяц";
 const DESCRIPTION =
