@@ -1,0 +1,12 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Твой рунический расклад — Три руны на месяц",
+  description:
+    "Персональный расклад из трёх рун Elder Futhark: прошлое, настоящее и будущее ближайшего месяца.",
+  robots: { index: false, follow: false },
+};
+
+export default function ResultLayout({ children }: { children: React.ReactNode }) {
+  return children;
+}

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /result
+Disallow: /thank-you
+
+Sitemap: https://runic-reading.vercel.app/sitemap.xml

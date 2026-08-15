@@ -1,26 +1,409 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #111318;
+  --bg-secondary: #181c24;
+  --bg-card: #1e2330;
+  --bg-card-hover: #242a3a;
+  --accent-amber: #e8820c;
+  --accent-amber-light: #ffb347;
+  --accent-ice: #7ecfed;
+  --accent-stone: #8a8fa0;
+  --text-primary: #f0ede8;
+  --text-secondary: #a8a4b0;
+  --text-muted: #5a5d6a;
+  --border: #2a3040;
+  --glow-amber: 0 0 20px rgba(232, 130, 12, 0.4);
+  --glow-ice: 0 0 20px rgba(126, 207, 237, 0.3);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-amber: var(--accent-amber);
+  --color-amber-light: var(--accent-amber-light);
+  --color-ice: var(--accent-ice);
+  --color-stone: var(--accent-stone);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border-stone: var(--border);
+  --font-display: var(--font-cinzel);
+  --font-body: var(--font-crimson);
+  --font-mono-rune: var(--font-space-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-crimson);
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Cinzel and Crimson Text ship latin + latin-ext only. The interface is in
+ * Russian, so Forum (Roman-capital display face, Cyrillic) and PT Serif
+ * (old-book text face, Cyrillic) sit directly behind them in each stack and
+ * pick up every Cyrillic glyph per-character.
+ */
+.font-display {
+  font-family: var(--font-cinzel);
+  letter-spacing: 0.02em;
+}
+
+.font-body {
+  font-family: var(--font-crimson);
+}
+
+.font-rune {
+  font-family: var(--font-space-mono), ui-monospace, monospace;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-cinzel);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(232, 130, 12, 0.3);
+  color: var(--text-primary);
+}
+
+/* ---------- Stone surfaces ---------- */
+
+.stone-card {
+  background:
+    radial-gradient(120% 100% at 20% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.stone-card:hover {
+  background:
+    radial-gradient(120% 100% at 20% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+    var(--bg-card-hover);
+}
+
+.amber-edge {
+  border-left: 2px solid var(--accent-amber);
+}
+
+.glow-amber {
+  box-shadow: var(--glow-amber);
+}
+
+.glow-ice {
+  box-shadow: var(--glow-ice);
+}
+
+/* Circular rune stone: layered radial gradients read as chipped granite. */
+.rune-stone {
+  position: relative;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.1), transparent 42%),
+    radial-gradient(circle at 72% 78%, rgba(0, 0, 0, 0.55), transparent 55%),
+    radial-gradient(circle at 50% 50%, #2b3141 0%, #1a1f2b 62%, #12151d 100%);
+  border: 1px solid #333b4d;
+  box-shadow:
+    inset 0 2px 6px rgba(255, 255, 255, 0.06),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.6),
+    0 10px 28px rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rune-stone.is-lit {
+  border-color: rgba(232, 130, 12, 0.55);
+  box-shadow:
+    inset 0 2px 6px rgba(255, 255, 255, 0.07),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.6),
+    0 0 26px rgba(232, 130, 12, 0.35),
+    0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+.rune-stone.is-back {
+  background:
+    radial-gradient(circle at 50% 50%, #232838 0%, #171b25 70%, #10131a 100%);
+  border: 1px solid rgba(232, 130, 12, 0.4);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn-amber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 26px;
+  background: linear-gradient(180deg, var(--accent-amber-light), var(--accent-amber));
+  color: #17130a;
+  border: none;
+  border-radius: 3px;
+  font-family: var(--font-cinzel);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.25s ease,
+    filter 0.2s ease;
+  box-shadow: 0 6px 22px rgba(232, 130, 12, 0.28);
+}
+
+.btn-amber:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 8px 30px rgba(232, 130, 12, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-amber:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--font-cinzel);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent-amber);
+  background: var(--bg-card-hover);
+}
+
+.pulse-amber {
+  animation: pulseAmber 2.6s ease-in-out infinite;
+}
+
+@keyframes pulseAmber {
+  0%,
+  100% {
+    box-shadow: 0 6px 22px rgba(232, 130, 12, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 6px 22px rgba(232, 130, 12, 0.5),
+      0 0 32px rgba(232, 130, 12, 0.35);
+  }
+}
+
+/* ---------- Form fields ---------- */
+
+.field {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-family: var(--font-crimson);
+  font-size: 16px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.field::placeholder {
+  color: var(--text-muted);
+}
+
+.field:focus {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 0 3px rgba(232, 130, 12, 0.14);
+}
+
+textarea.field {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-family: var(--font-cinzel);
+}
+
+/* ---------- Locked / blurred content ---------- */
+
+.locked-text {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  border: none;
+}
+
+/* ---------- Ember drift for background runes ---------- */
+
+@keyframes emberDrift {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(14deg);
+    opacity: 0;
+  }
+}
+
+.ember {
+  position: absolute;
+  animation-name: emberDrift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes slowSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ember,
+  .pulse-amber {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------- Layout helpers ---------- */
+
+.shell {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.shell-narrow {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.eyebrow {
+  font-family: var(--font-cinzel);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-stone);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* 3D flip for the pricing stones */
+.flip-scene {
+  perspective: 900px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0.1, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-face-back {
+  transform: rotateY(180deg);
 }
